@@ -1,17 +1,17 @@
 const defaultGroceryProducts = [
-    { id: 1, name: "Fresh Red Apple", price: 120.00, image: "assets/apple.png", badge: "FRESH", category: "Fruits", dietary: ["Vegan", "Gluten-Free"], inStock: true },
-    { id: 2, name: "Yellow Bananas (Bunch)", price: 60.00, image: "assets/banana.png", badge: "SALE", category: "Fruits", dietary: ["Vegan", "Organic", "Gluten-Free"], inStock: true },
-    { id: 3, name: "Premium Fresh Milk", price: 80.00, image: "assets/milk.png", badge: "NEW", category: "Dairy & Eggs", dietary: ["Gluten-Free"], inStock: true },
-    { id: 4, name: "Artisanal Sourdough Bread", price: 150.00, image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&q=80&w=400", badge: "ORGANIC", category: "Bakery", dietary: ["Vegan", "Organic"], inStock: true },
-    { id: 5, name: "Cooking Oil", price: 220.00, image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400", badge: "STAPLE", category: "Bakery", dietary: ["Vegan", "Gluten-Free"], inStock: true },
-    { id: 6, name: "Wheat Flour", price: 90.00, image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400", badge: "STAPLE", category: "Bakery", dietary: ["Vegan"], inStock: true }
+    { id: 1, name: "Britania Biscuit", price: 20.00, image: "../Britannia Biscuit.jpeg", badge: "FRESH", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
+    { id: 2, name: "Everest Chat masala", price: 60.00, image: "../Everest Chat Masala.jpeg", badge: "SPICE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
+    { id: 3, name: "Amul Milk", price: 40.00, image: "../Amul Milk.jpeg", badge: "DAIRY", category: "Dairy & Eggs", dietary: ["Vegetarian"], inStock: true },
+    { id: 4, name: "Wibs Brown Bread", price: 35.00, image: "../One for all.jpeg", badge: "HEALTHY", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
+    { id: 5, name: "Cooking Oil", price: 220.00, image: "../Cooking Oil.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
+    { id: 6, name: "Wheat Flour", price: 50.00, image: "../Wheat Flour.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true }
 ];
 
-if (!localStorage.getItem('groceryProductsV2')) {
-    localStorage.setItem('groceryProductsV2', JSON.stringify(defaultGroceryProducts));
+if (!localStorage.getItem('groceryProductsV5')) {
+    localStorage.setItem('groceryProductsV5', JSON.stringify(defaultGroceryProducts));
 }
 
-let products = JSON.parse(localStorage.getItem('groceryProductsV2'));
+let products = JSON.parse(localStorage.getItem('groceryProductsV5'));
 
 let cart = [];
 
@@ -55,7 +55,7 @@ function renderProducts() {
         let dietaryMatch = dietaryFilters.length === 0 || dietaryFilters.every(d => product.dietary.includes(d));
         
         // Price Match
-        let priceMatch = priceFilters.length === 0;
+        let priceMatch = priceFilters.length === 0 || priceFilters.includes('all');
         if (!priceMatch) {
             priceMatch = priceFilters.some(pf => {
                 if (pf === 'under-100' && product.price < 100) return true;
@@ -134,10 +134,19 @@ function setupEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('input', renderProducts);
     }
+    
+    // Dropdown animation for filters
+    document.querySelectorAll('.filter-section h3').forEach(header => {
+        header.addEventListener('click', () => {
+            const list = header.nextElementSibling;
+            list.classList.toggle('collapsed');
+            header.classList.toggle('collapsed');
+        });
+    });
 
     // Listen for changes from Owner Dashboard (another tab)
     window.addEventListener('storage', (e) => {
-        if (e.key === 'groceryProductsV2') {
+        if (e.key === 'groceryProductsV5') {
             products = JSON.parse(e.newValue);
             renderProducts();
             

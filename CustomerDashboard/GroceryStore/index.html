@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>FreshMart - Premium Grocery Delivery</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -56,9 +57,10 @@
             <div class="filter-section">
                 <h3>Price <i class="fa-solid fa-chevron-down"></i></h3>
                 <ul class="filter-list" id="price-filters">
-                    <li><label><input type="checkbox" value="under-100" class="filter-cb"> Under ₹100</label></li>
-                    <li><label><input type="checkbox" value="100-200" class="filter-cb"> ₹100 - ₹200</label></li>
-                    <li><label><input type="checkbox" value="over-200" class="filter-cb"> Over ₹200</label></li>
+                    <li><label><input type="radio" name="price" value="all" class="filter-cb" checked> All Prices</label></li>
+                    <li><label><input type="radio" name="price" value="under-100" class="filter-cb"> Under ₹100</label></li>
+                    <li><label><input type="radio" name="price" value="100-200" class="filter-cb"> ₹100 - ₹200</label></li>
+                    <li><label><input type="radio" name="price" value="over-200" class="filter-cb"> Over ₹200</label></li>
                 </ul>
             </div>
         </aside>
@@ -128,7 +130,7 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="script.js"></script>
+    <script src="script_v3.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3W4Phsr1JeWZMgV68tZlFIKI8QXVbIww&callback=initMap&libraries=places&v=weekly" defer></script>
 </body>
 </html>

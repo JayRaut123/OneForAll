@@ -1,17 +1,17 @@
 const defaultHotelProducts = [
-    { id: 1, name: "Paneer Tikka", price: 350.00, image: "assets/burger.png", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
-    { id: 2, name: "Chicken Biryani", price: 400.00, image: "assets/pizza.png", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "assets/pasta.png", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
-    { id: 4, name: "Chilli Chicken", price: 380.00, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
-    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "assets/burger.png", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 6, name: "Paneer Kabab", price: 280.00, image: "assets/pizza.png", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
+    { id: 1, name: "Paneer Tikka", price: 350.00, image: "../Paneer_Tikka.jpg", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
+    { id: 2, name: "Chicken Biryani", price: 400.00, image: "../Chicken Biryani.jpeg", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "../Veg Hakka Noodles.jpeg", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
+    { id: 4, name: "Chilli Chicken", price: 380.00, image: "../Chlli_Chiken.jpeg", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
+    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "../Chicken_Sandwich.jpeg", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 6, name: "Paneer Kabab", price: 280.00, image: "../Paneer_Kabab.jpeg", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
 ];
 
-if (!localStorage.getItem('hotelProductsV2')) {
-    localStorage.setItem('hotelProductsV2', JSON.stringify(defaultHotelProducts));
+if (!localStorage.getItem('hotelProductsV5')) {
+    localStorage.setItem('hotelProductsV5', JSON.stringify(defaultHotelProducts));
 }
 
-let products = JSON.parse(localStorage.getItem('hotelProductsV2'));
+let products = JSON.parse(localStorage.getItem('hotelProductsV5'));
 
 let cart = [];
 
@@ -40,15 +40,27 @@ function renderProducts() {
     // Get active filters
     const categoryFilters = Array.from(document.querySelectorAll('#category-filters .filter-cb:checked')).map(cb => cb.value);
     const cuisineFilters = Array.from(document.querySelectorAll('#cuisine-filters .filter-cb:checked')).map(cb => cb.value);
+    const priceFilters = Array.from(document.querySelectorAll('#price-filters .filter-cb:checked')).map(cb => cb.value);
 
     const searchInput = document.querySelector('.search-bar input');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
     let filtered = products.filter(product => {
         let nameMatch = searchTerm === '' || product.name.toLowerCase().includes(searchTerm);
-        let categoryMatch = categoryFilters.length === 0 || categoryFilters.includes(product.category);
+        let categoryMatch = categoryFilters.length === 0 || categoryFilters.some(c => c.toLowerCase() === 'all') || categoryFilters.includes(product.category);
         let cuisineMatch = cuisineFilters.length === 0 || cuisineFilters.includes(product.cuisine);
-        return nameMatch && categoryMatch && cuisineMatch;
+        
+        let priceMatch = priceFilters.length === 0 || priceFilters.some(p => p.toLowerCase() === 'all');
+        if (!priceMatch) {
+            priceMatch = priceFilters.some(pf => {
+                if (pf === 'under-200' && product.price < 200) return true;
+                if (pf === '200-350' && product.price >= 200 && product.price <= 350) return true;
+                if (pf === 'over-350' && product.price > 350) return true;
+                return false;
+            });
+        }
+        
+        return nameMatch && categoryMatch && cuisineMatch && priceMatch;
     });
 
     if (filtered.length === 0) {
@@ -118,9 +130,18 @@ function setupEventListeners() {
         searchInput.addEventListener('input', renderProducts);
     }
 
+    // Dropdown animation for filters
+    document.querySelectorAll('.filter-section h3').forEach(header => {
+        header.addEventListener('click', () => {
+            const list = header.nextElementSibling;
+            list.classList.toggle('collapsed');
+            header.classList.toggle('collapsed');
+        });
+    });
+
     // Listen for changes from Owner Dashboard (another tab)
     window.addEventListener('storage', (e) => {
-        if (e.key === 'hotelProductsV2') {
+        if (e.key === 'hotelProductsV5') {
             products = JSON.parse(e.newValue);
             renderProducts();
             
