@@ -18,8 +18,11 @@
             <input type="text" placeholder="Search for groceries...">
         </div>
         <div class="nav-actions">
+            <div class="track-icon" id="open-tracking-btn" style="display: none;" title="Track Delivery">
+                <i class="fa-solid fa-map-location-dot"></i> Track Order
+            </div>
             <div class="cart-icon" id="cart-btn">
-                <i class="fa-solid fa-cart-shopping"></i>
+                <i class="fa-solid fa-cart-shopping"></i> Cart
                 <span class="cart-badge" id="cart-badge">0</span>
             </div>
             <div class="profile-pic"></div>
@@ -53,9 +56,9 @@
             <div class="filter-section">
                 <h3>Price <i class="fa-solid fa-chevron-down"></i></h3>
                 <ul class="filter-list" id="price-filters">
-                    <li><label><input type="checkbox" value="under-5" class="filter-cb"> Under $5</label></li>
-                    <li><label><input type="checkbox" value="5-10" class="filter-cb"> $5 - $10</label></li>
-                    <li><label><input type="checkbox" value="over-10" class="filter-cb"> Over $10</label></li>
+                    <li><label><input type="checkbox" value="under-100" class="filter-cb"> Under ₹100</label></li>
+                    <li><label><input type="checkbox" value="100-200" class="filter-cb"> ₹100 - ₹200</label></li>
+                    <li><label><input type="checkbox" value="over-200" class="filter-cb"> Over ₹200</label></li>
                 </ul>
             </div>
         </aside>
@@ -91,7 +94,7 @@
             <div class="cart-footer">
                 <div class="cart-total">
                     <span>Total:</span>
-                    <span id="cart-total-price">$0.00</span>
+                    <span id="cart-total-price">₹0.00</span>
                 </div>
                 <button class="checkout-btn" id="checkout-btn">
                     <span class="btn-text">Pay Now</span>
@@ -110,7 +113,7 @@
                 <div class="status-step active"><i class="fa-solid fa-check"></i> Order Placed</div>
                 <div class="status-step active"><i class="fa-solid fa-box"></i> Packed</div>
                 <div class="status-step active pulse"><i class="fa-solid fa-truck"></i> On the Way</div>
-                <div class="status-step"><i class="fa-solid fa-house"></i> Delivered</div>
+                <div class="status-step"><i class="fa-solid fa-house"></i> At your Doorstep</div>
             </div>
             <div class="map-container" id="map" style="width: 100%; height: 250px;">
                 <!-- Map injected by JS -->

@@ -1,17 +1,17 @@
 const defaultGroceryProducts = [
-    { id: 1, name: "Fresh Red Apple", price: 4.99, image: "assets/apple.png", badge: "FRESH", category: "Fruits", dietary: ["Vegan", "Gluten-Free"], inStock: true },
-    { id: 2, name: "Yellow Bananas (Bunch)", price: 2.49, image: "assets/banana.png", badge: "SALE", category: "Fruits", dietary: ["Vegan", "Organic", "Gluten-Free"], inStock: true },
-    { id: 3, name: "Premium Fresh Milk", price: 3.99, image: "assets/milk.png", badge: "NEW", category: "Dairy & Eggs", dietary: ["Gluten-Free"], inStock: true },
-    { id: 4, name: "Artisanal Sourdough Bread", price: 5.99, image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&q=80&w=400", badge: "ORGANIC", category: "Bakery", dietary: ["Vegan", "Organic"], inStock: true },
-    { id: 5, name: "Cooking Oil", price: 8.50, image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400", badge: "STAPLE", category: "Bakery", dietary: ["Vegan", "Gluten-Free"], inStock: true },
-    { id: 6, name: "Wheat Flour", price: 3.20, image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400", badge: "STAPLE", category: "Bakery", dietary: ["Vegan"], inStock: true }
+    { id: 1, name: "Fresh Red Apple", price: 120.00, image: "assets/apple.png", badge: "FRESH", category: "Fruits", dietary: ["Vegan", "Gluten-Free"], inStock: true },
+    { id: 2, name: "Yellow Bananas (Bunch)", price: 60.00, image: "assets/banana.png", badge: "SALE", category: "Fruits", dietary: ["Vegan", "Organic", "Gluten-Free"], inStock: true },
+    { id: 3, name: "Premium Fresh Milk", price: 80.00, image: "assets/milk.png", badge: "NEW", category: "Dairy & Eggs", dietary: ["Gluten-Free"], inStock: true },
+    { id: 4, name: "Artisanal Sourdough Bread", price: 150.00, image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&q=80&w=400", badge: "ORGANIC", category: "Bakery", dietary: ["Vegan", "Organic"], inStock: true },
+    { id: 5, name: "Cooking Oil", price: 220.00, image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400", badge: "STAPLE", category: "Bakery", dietary: ["Vegan", "Gluten-Free"], inStock: true },
+    { id: 6, name: "Wheat Flour", price: 90.00, image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400", badge: "STAPLE", category: "Bakery", dietary: ["Vegan"], inStock: true }
 ];
 
-if (!localStorage.getItem('groceryProducts')) {
-    localStorage.setItem('groceryProducts', JSON.stringify(defaultGroceryProducts));
+if (!localStorage.getItem('groceryProductsV2')) {
+    localStorage.setItem('groceryProductsV2', JSON.stringify(defaultGroceryProducts));
 }
 
-let products = JSON.parse(localStorage.getItem('groceryProducts'));
+let products = JSON.parse(localStorage.getItem('groceryProductsV2'));
 
 let cart = [];
 
@@ -26,6 +26,7 @@ const cartTotalPrice = document.getElementById('cart-total-price');
 const checkoutBtn = document.getElementById('checkout-btn');
 const trackingModal = document.getElementById('tracking-modal');
 const closeTrackingBtn = document.getElementById('close-tracking');
+const openTrackingBtn = document.getElementById('open-tracking-btn');
 
 // Initialize Dashboard
 function init() {
@@ -40,8 +41,13 @@ function renderProducts() {
     const categoryFilters = Array.from(document.querySelectorAll('#category-filters .filter-cb:checked')).map(cb => cb.value);
     const dietaryFilters = Array.from(document.querySelectorAll('#dietary-filters .filter-cb:checked')).map(cb => cb.value);
     const priceFilters = Array.from(document.querySelectorAll('#price-filters .filter-cb:checked')).map(cb => cb.value);
+    
+    const searchInput = document.querySelector('.search-bar input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
     let filtered = products.filter(product => {
+        let nameMatch = searchTerm === '' || product.name.toLowerCase().includes(searchTerm);
+        
         // Category Match
         let categoryMatch = categoryFilters.length === 0 || categoryFilters.includes(product.category);
         
@@ -52,14 +58,14 @@ function renderProducts() {
         let priceMatch = priceFilters.length === 0;
         if (!priceMatch) {
             priceMatch = priceFilters.some(pf => {
-                if (pf === 'under-5' && product.price < 5) return true;
-                if (pf === '5-10' && product.price >= 5 && product.price <= 10) return true;
-                if (pf === 'over-10' && product.price > 10) return true;
+                if (pf === 'under-100' && product.price < 100) return true;
+                if (pf === '100-200' && product.price >= 100 && product.price <= 200) return true;
+                if (pf === 'over-200' && product.price > 200) return true;
                 return false;
             });
         }
 
-        return categoryMatch && dietaryMatch && priceMatch;
+        return nameMatch && categoryMatch && dietaryMatch && priceMatch;
     });
 
     if (filtered.length === 0) {
@@ -88,7 +94,7 @@ function renderProducts() {
             </div>
             <div class="product-info">
                 <h3 class="product-title">${product.name}</h3>
-                <div class="product-price">$${product.price.toFixed(2)}</div>
+                <div class="product-price">₹${product.price.toFixed(2)}</div>
                 ${buttonHtml}
             </div>
         `;
@@ -112,14 +118,26 @@ function setupEventListeners() {
         trackingModal.classList.remove('active');
     });
 
+    if (openTrackingBtn) {
+        openTrackingBtn.addEventListener('click', () => {
+            trackingModal.classList.add('active');
+        });
+    }
+
     // Listen for filter changes
     document.querySelectorAll('.filter-cb').forEach(cb => {
         cb.addEventListener('change', renderProducts);
     });
+    
+    // Listen for search input changes
+    const searchInput = document.querySelector('.search-bar input');
+    if (searchInput) {
+        searchInput.addEventListener('input', renderProducts);
+    }
 
     // Listen for changes from Owner Dashboard (another tab)
     window.addEventListener('storage', (e) => {
-        if (e.key === 'groceryProducts') {
+        if (e.key === 'groceryProductsV2') {
             products = JSON.parse(e.newValue);
             renderProducts();
             
@@ -218,7 +236,7 @@ function updateCartBadge() {
 function renderCart() {
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = '<div class="empty-cart-msg" style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Your cart is empty.</div>';
-        cartTotalPrice.textContent = '$0.00';
+        cartTotalPrice.textContent = '₹0.00';
         return;
     }
 
@@ -237,7 +255,7 @@ function renderCart() {
             </div>
             <div class="cart-item-details">
                 <div class="cart-item-title">${item.name}</div>
-                <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                <div class="cart-item-price">₹${item.price.toFixed(2)}</div>
             </div>
             <div class="cart-item-actions">
                 <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
@@ -248,7 +266,7 @@ function renderCart() {
         cartItemsContainer.appendChild(cartItem);
     });
 
-    cartTotalPrice.textContent = `$${total.toFixed(2)}`;
+    cartTotalPrice.textContent = `₹${total.toFixed(2)}`;
 }
 
 // Checkout and Tracking
@@ -267,6 +285,7 @@ function handleCheckout() {
         updateCartBadge();
         
         trackingModal.classList.add('active');
+        if (openTrackingBtn) openTrackingBtn.style.display = 'block';
         startTrackingAnimation();
     }, 2000); 
 }
@@ -349,12 +368,27 @@ function startTrackingAnimation() {
         simIndex = 0;
         document.getElementById("status-text").innerText = "Out for Delivery!";
         updateTruckLocation(startPos);
+        
+        const steps = document.querySelectorAll('#tracking-modal .status-step');
+        if(steps.length >= 4) {
+            steps[2].classList.add('pulse');
+            steps[3].classList.remove('active');
+        }
 
         simInterval = setInterval(() => {
             if (simIndex >= simSteps.length) {
                 clearInterval(simInterval);
                 document.getElementById("status-text").innerText = "Arrived at your Doorstep!";
                 document.getElementById("dist-text").innerText = "0.0 km left";
+                
+                if(steps.length >= 4) {
+                    steps[2].classList.remove('pulse');
+                    steps[3].classList.add('active');
+                }
+                
+                // Hide tracking button when delivery is complete
+                if (openTrackingBtn) openTrackingBtn.style.display = 'none';
+                
                 return;
             }
             const pos = simSteps[simIndex];

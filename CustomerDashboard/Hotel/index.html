@@ -18,8 +18,11 @@
             <input type="text" placeholder="Search for dishes...">
         </div>
         <div class="nav-actions">
+            <div class="track-icon" id="open-tracking-btn" style="display: none;" title="Track Delivery">
+                <i class="fa-solid fa-map-location-dot"></i> Track Order
+            </div>
             <div class="cart-icon" id="cart-btn">
-                <i class="fa-solid fa-cart-shopping"></i>
+                <i class="fa-solid fa-cart-shopping"></i> Cart
                 <span class="cart-badge" id="cart-badge">0</span>
             </div>
             <div class="profile-pic"></div>
@@ -79,7 +82,7 @@
             <div class="cart-footer">
                 <div class="cart-total">
                     <span>Total:</span>
-                    <span id="cart-total-price">$0.00</span>
+                    <span id="cart-total-price">₹0.00</span>
                 </div>
                 <button class="checkout-btn" id="checkout-btn">
                     <span class="btn-text">Pay & Order</span>
@@ -98,7 +101,7 @@
                 <div class="status-step active"><i class="fa-solid fa-utensils"></i> Preparing</div>
                 <div class="status-step active"><i class="fa-solid fa-box"></i> Packed</div>
                 <div class="status-step active pulse"><i class="fa-solid fa-motorcycle"></i> On the Way</div>
-                <div class="status-step"><i class="fa-solid fa-house"></i> Delivered</div>
+                <div class="status-step"><i class="fa-solid fa-house"></i> At your Doorstep</div>
             </div>
             <div class="map-container" id="map" style="width: 100%; height: 250px;">
                 <!-- Map injected by JS -->

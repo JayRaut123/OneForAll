@@ -1,17 +1,17 @@
 const defaultHotelProducts = [
-    { id: 1, name: "Paneer Tikka", price: 10.99, image: "assets/burger.png", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
-    { id: 2, name: "Chicken Biryani", price: 14.50, image: "assets/pizza.png", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 3, name: "Veg Hakka Noodles", price: 8.00, image: "assets/pasta.png", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
-    { id: 4, name: "Chilli Chicken", price: 12.00, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
-    { id: 5, name: "Chicken Sandwich", price: 6.50, image: "assets/burger.png", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 6, name: "Paneer Kabab", price: 9.00, image: "assets/pizza.png", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
+    { id: 1, name: "Paneer Tikka", price: 350.00, image: "assets/burger.png", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
+    { id: 2, name: "Chicken Biryani", price: 400.00, image: "assets/pizza.png", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "assets/pasta.png", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
+    { id: 4, name: "Chilli Chicken", price: 380.00, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
+    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "assets/burger.png", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 6, name: "Paneer Kabab", price: 280.00, image: "assets/pizza.png", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
 ];
 
-if (!localStorage.getItem('hotelProducts')) {
-    localStorage.setItem('hotelProducts', JSON.stringify(defaultHotelProducts));
+if (!localStorage.getItem('hotelProductsV2')) {
+    localStorage.setItem('hotelProductsV2', JSON.stringify(defaultHotelProducts));
 }
 
-let products = JSON.parse(localStorage.getItem('hotelProducts'));
+let products = JSON.parse(localStorage.getItem('hotelProductsV2'));
 
 let cart = [];
 
@@ -26,6 +26,7 @@ const cartTotalPrice = document.getElementById('cart-total-price');
 const checkoutBtn = document.getElementById('checkout-btn');
 const trackingModal = document.getElementById('tracking-modal');
 const closeTrackingBtn = document.getElementById('close-tracking');
+const openTrackingBtn = document.getElementById('open-tracking-btn');
 
 // Initialize Dashboard
 function init() {
@@ -40,10 +41,14 @@ function renderProducts() {
     const categoryFilters = Array.from(document.querySelectorAll('#category-filters .filter-cb:checked')).map(cb => cb.value);
     const cuisineFilters = Array.from(document.querySelectorAll('#cuisine-filters .filter-cb:checked')).map(cb => cb.value);
 
+    const searchInput = document.querySelector('.search-bar input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+
     let filtered = products.filter(product => {
+        let nameMatch = searchTerm === '' || product.name.toLowerCase().includes(searchTerm);
         let categoryMatch = categoryFilters.length === 0 || categoryFilters.includes(product.category);
         let cuisineMatch = cuisineFilters.length === 0 || cuisineFilters.includes(product.cuisine);
-        return categoryMatch && cuisineMatch;
+        return nameMatch && categoryMatch && cuisineMatch;
     });
 
     if (filtered.length === 0) {
@@ -72,7 +77,7 @@ function renderProducts() {
             </div>
             <div class="product-info">
                 <h3 class="product-title">${product.name}</h3>
-                <div class="product-price">$${product.price.toFixed(2)}</div>
+                <div class="product-price">₹${product.price.toFixed(2)}</div>
                 ${buttonHtml}
             </div>
         `;
@@ -96,14 +101,26 @@ function setupEventListeners() {
         trackingModal.classList.remove('active');
     });
 
+    if (openTrackingBtn) {
+        openTrackingBtn.addEventListener('click', () => {
+            trackingModal.classList.add('active');
+        });
+    }
+
     // Listen for filter changes
     document.querySelectorAll('.filter-cb').forEach(cb => {
         cb.addEventListener('change', renderProducts);
     });
+    
+    // Listen for search input changes
+    const searchInput = document.querySelector('.search-bar input');
+    if (searchInput) {
+        searchInput.addEventListener('input', renderProducts);
+    }
 
     // Listen for changes from Owner Dashboard (another tab)
     window.addEventListener('storage', (e) => {
-        if (e.key === 'hotelProducts') {
+        if (e.key === 'hotelProductsV2') {
             products = JSON.parse(e.newValue);
             renderProducts();
             
@@ -202,7 +219,7 @@ function updateCartBadge() {
 function renderCart() {
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = '<div class="empty-cart-msg" style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Your order is empty.</div>';
-        cartTotalPrice.textContent = '$0.00';
+        cartTotalPrice.textContent = '₹0.00';
         return;
     }
 
@@ -221,7 +238,7 @@ function renderCart() {
             </div>
             <div class="cart-item-details">
                 <div class="cart-item-title">${item.name}</div>
-                <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                <div class="cart-item-price">₹${item.price.toFixed(2)}</div>
             </div>
             <div class="cart-item-actions">
                 <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
@@ -232,7 +249,7 @@ function renderCart() {
         cartItemsContainer.appendChild(cartItem);
     });
 
-    cartTotalPrice.textContent = `$${total.toFixed(2)}`;
+    cartTotalPrice.textContent = `₹${total.toFixed(2)}`;
 }
 
 // Checkout and Tracking
@@ -251,6 +268,7 @@ function handleCheckout() {
         updateCartBadge();
         
         trackingModal.classList.add('active');
+        if (openTrackingBtn) openTrackingBtn.style.display = 'block';
         startTrackingAnimation();
     }, 2000); 
 }
@@ -333,12 +351,27 @@ function startTrackingAnimation() {
         simIndex = 0;
         document.getElementById("status-text").innerText = "Out for Delivery!";
         updateTruckLocation(startPos);
+        
+        const steps = document.querySelectorAll('#tracking-modal .status-step');
+        if(steps.length >= 4) {
+            steps[2].classList.add('pulse');
+            steps[3].classList.remove('active');
+        }
 
         simInterval = setInterval(() => {
             if (simIndex >= simSteps.length) {
                 clearInterval(simInterval);
                 document.getElementById("status-text").innerText = "Arrived at your Doorstep!";
                 document.getElementById("dist-text").innerText = "0.0 km left";
+                
+                if(steps.length >= 4) {
+                    steps[2].classList.remove('pulse');
+                    steps[3].classList.add('active');
+                }
+                
+                // Hide tracking button when delivery is complete
+                if (openTrackingBtn) openTrackingBtn.style.display = 'none';
+                
                 return;
             }
             const pos = simSteps[simIndex];
