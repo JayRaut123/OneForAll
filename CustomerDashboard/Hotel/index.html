@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Hotel - Premium Dining</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-bell-concierge"></i> Grand Hotel
+        </div>
+        <div class="search-bar">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" placeholder="Search for dishes...">
+        </div>
+        <div class="nav-actions">
+            <div class="cart-icon" id="cart-btn">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="cart-badge" id="cart-badge">0</span>
+            </div>
+            <div class="profile-pic"></div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Sidebar Filters -->
+        <aside class="sidebar">
+            <h2 class="filter-title">Menu</h2>
+            
+            <div class="filter-section">
+                <h3>Categories <i class="fa-solid fa-chevron-down"></i></h3>
+                <ul class="filter-list" id="category-filters">
+                    <li><label><input type="checkbox" value="Veg" class="filter-cb"> Veg</label></li>
+                    <li><label><input type="checkbox" value="Non-veg" class="filter-cb"> Non-veg</label></li>
+                </ul>
+            </div>
+            
+            <div class="filter-section">
+                <h3>Cuisine <i class="fa-solid fa-chevron-down"></i></h3>
+                <ul class="filter-list" id="cuisine-filters">
+                    <li><label><input type="checkbox" value="Indian" class="filter-cb"> Indian</label></li>
+                    <li><label><input type="checkbox" value="Chinese" class="filter-cb"> Chinese</label></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <section class="products-section">
+            <div class="section-header">
+                <h2>Chef's Specials</h2>
+                <div class="sort-by">
+                    Sort by Relevance <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            </div>
+            
+            <div class="product-grid" id="product-grid">
+                <!-- Products injected by JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Cart Sidebar Overlay -->
+    <div class="cart-overlay" id="cart-overlay">
+        <div class="cart-sidebar">
+            <div class="cart-header">
+                <h2>Your Order</h2>
+                <button class="close-btn" id="close-cart"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="cart-items" id="cart-items">
+                <!-- Cart items injected by JS -->
+                <div class="empty-cart-msg">Your order is empty.</div>
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cart-total-price">$0.00</span>
+                </div>
+                <button class="checkout-btn" id="checkout-btn">
+                    <span class="btn-text">Pay & Order</span>
+                    <div class="btn-loader"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tracking Modal -->
+    <div class="tracking-modal" id="tracking-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="close-tracking"><i class="fa-solid fa-xmark"></i></button>
+            <h2>Delivery Tracking</h2>
+            <div class="tracking-status">
+                <div class="status-step active"><i class="fa-solid fa-utensils"></i> Preparing</div>
+                <div class="status-step active"><i class="fa-solid fa-box"></i> Packed</div>
+                <div class="status-step active pulse"><i class="fa-solid fa-motorcycle"></i> On the Way</div>
+                <div class="status-step"><i class="fa-solid fa-house"></i> Delivered</div>
+            </div>
+            <div class="map-container" id="map" style="width: 100%; height: 250px;">
+                <!-- Map injected by JS -->
+            </div>
+            <div class="delivery-eta" style="margin-top: 10px;">
+                <span id="status-text">Preparing Order</span>
+                <strong id="dist-text">Calculating...</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="script.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3W4Phsr1JeWZMgV68tZlFIKI8QXVbIww&callback=initMap&libraries=places&v=weekly" defer></script>
+</body>
+</html>
