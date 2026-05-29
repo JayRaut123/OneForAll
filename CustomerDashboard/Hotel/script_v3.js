@@ -1,17 +1,17 @@
 const defaultHotelProducts = [
-    { id: 1, name: "Paneer Tikka", price: 350.00, image: "../Paneer_Tikka.jpg", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
-    { id: 2, name: "Chicken Biryani", price: 400.00, image: "../Chicken Biryani.jpeg", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "../Veg Hakka Noodles.jpeg", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
-    { id: 4, name: "Chilli Chicken", price: 380.00, image: "../Chlli_Chiken.jpeg", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
-    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "../Chicken_Sandwich.jpeg", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 6, name: "Paneer Kabab", price: 280.00, image: "../Paneer_Kabab.jpeg", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
+    { id: 1, name: "Paneer Tikka", price: 350.00, image: "../images/Paneer_Tikka.jpg", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
+    { id: 2, name: "Chicken Biryani", price: 400.00, image: "../images/Chicken Biryani.jpeg", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "../images/Veg Hakka Noodles.jpeg", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
+    { id: 4, name: "Chilli Chicken", price: 380.00, image: "../images/Chlli_Chiken.jpeg", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
+    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "../images/Chicken_Sandwich.jpeg", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 6, name: "Paneer Kabab", price: 280.00, image: "../images/Paneer_Kabab.jpeg", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
 ];
 
-if (!localStorage.getItem('hotelProductsV5')) {
-    localStorage.setItem('hotelProductsV5', JSON.stringify(defaultHotelProducts));
+if (!localStorage.getItem('hotelProductsV6')) {
+    localStorage.setItem('hotelProductsV6', JSON.stringify(defaultHotelProducts));
 }
 
-let products = JSON.parse(localStorage.getItem('hotelProductsV5'));
+let products = JSON.parse(localStorage.getItem('hotelProductsV6'));
 
 let cart = [];
 
@@ -141,7 +141,7 @@ function setupEventListeners() {
 
     // Listen for changes from Owner Dashboard (another tab)
     window.addEventListener('storage', (e) => {
-        if (e.key === 'hotelProductsV5') {
+        if (e.key === 'hotelProductsV6') {
             products = JSON.parse(e.newValue);
             renderProducts();
             
@@ -159,21 +159,32 @@ function setupEventListeners() {
 // Sound and Toast Animation
 function playPopSound() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
     
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-    
-    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.1);
+    // First tone (A5)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain1.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain1.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.02);
+    gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(audioCtx.currentTime);
+    osc1.stop(audioCtx.currentTime + 0.15);
+
+    // Second tone (D6)
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1174.66, audioCtx.currentTime + 0.1);
+    gain2.gain.setValueAtTime(0, audioCtx.currentTime + 0.1);
+    gain2.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(audioCtx.currentTime + 0.1);
+    osc2.stop(audioCtx.currentTime + 0.35);
 }
 
 function showToast(message) {
@@ -296,7 +307,7 @@ function handleCheckout() {
 
 // Google Maps Tracking Algorithm
 let map, donorMarker, truckMarker, polyline;
-const donorPos = { lat: 19.2307, lng: 72.8567 }; // Customer Home (Borivali)
+let donorPos = { lat: 19.2307, lng: 72.8567 }; // Default Customer Home (Borivali)
 const startPos = { lat: 19.1136, lng: 72.8697 }; // Restaurant (Andheri)
 
 function initMap() {
@@ -332,6 +343,32 @@ function initMap() {
         strokeWeight: 5,
         path: [startPos, donorPos]
     });
+
+    // Request User Geolocation
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                donorPos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Update map center, marker, and route path
+                map.setCenter(donorPos);
+                donorMarker.setPosition(donorPos);
+                polyline.setPath([startPos, donorPos]);
+                
+                // Adjust bounds to fit both the store and new user location
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(donorPos);
+                bounds.extend(startPos);
+                map.fitBounds(bounds, { padding: 80 });
+            },
+            (error) => {
+                console.log("Geolocation error or denied:", error.message);
+            }
+        );
+    }
 }
 window.initMap = initMap;
 

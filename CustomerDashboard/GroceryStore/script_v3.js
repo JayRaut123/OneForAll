@@ -1,17 +1,17 @@
 const defaultGroceryProducts = [
-    { id: 1, name: "Britania Biscuit", price: 20.00, image: "../Britannia Biscuit.jpeg", badge: "FRESH", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
-    { id: 2, name: "Everest Chat masala", price: 60.00, image: "../Everest Chat Masala.jpeg", badge: "SPICE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
-    { id: 3, name: "Amul Milk", price: 40.00, image: "../Amul Milk.jpeg", badge: "DAIRY", category: "Dairy & Eggs", dietary: ["Vegetarian"], inStock: true },
-    { id: 4, name: "Wibs Brown Bread", price: 35.00, image: "../One for all.jpeg", badge: "HEALTHY", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
-    { id: 5, name: "Cooking Oil", price: 220.00, image: "../Cooking Oil.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
-    { id: 6, name: "Wheat Flour", price: 50.00, image: "../Wheat Flour.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true }
+    { id: 1, name: "Britania Biscuit", price: 20.00, image: "../images/Britannia Biscuit.jpeg", badge: "FRESH", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
+    { id: 2, name: "Everest Chat masala", price: 60.00, image: "../images/Everest Chat Masala.jpeg", badge: "SPICE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
+    { id: 3, name: "Amul Milk", price: 40.00, image: "../images/Amul Milk.jpeg", badge: "DAIRY", category: "Dairy & Eggs", dietary: ["Vegetarian"], inStock: true },
+    { id: 4, name: "Wibs Brown Bread", price: 35.00, image: "../images/One for all.jpeg", badge: "HEALTHY", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
+    { id: 5, name: "Cooking Oil", price: 220.00, image: "../images/Cooking Oil.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
+    { id: 6, name: "Wheat Flour", price: 50.00, image: "../images/Wheat Flour.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true }
 ];
 
-if (!localStorage.getItem('groceryProductsV5')) {
-    localStorage.setItem('groceryProductsV5', JSON.stringify(defaultGroceryProducts));
+if (!localStorage.getItem('groceryProductsV6')) {
+    localStorage.setItem('groceryProductsV6', JSON.stringify(defaultGroceryProducts));
 }
 
-let products = JSON.parse(localStorage.getItem('groceryProductsV5'));
+let products = JSON.parse(localStorage.getItem('groceryProductsV6'));
 
 let cart = [];
 
@@ -146,7 +146,7 @@ function setupEventListeners() {
 
     // Listen for changes from Owner Dashboard (another tab)
     window.addEventListener('storage', (e) => {
-        if (e.key === 'groceryProductsV5') {
+        if (e.key === 'groceryProductsV6') {
             products = JSON.parse(e.newValue);
             renderProducts();
             
@@ -164,21 +164,32 @@ function setupEventListeners() {
 // Sound and Toast Animation
 function playPopSound() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
     
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-    
-    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.1);
+    // First tone (A5)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain1.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain1.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.02);
+    gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(audioCtx.currentTime);
+    osc1.stop(audioCtx.currentTime + 0.15);
+
+    // Second tone (D6)
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1174.66, audioCtx.currentTime + 0.1);
+    gain2.gain.setValueAtTime(0, audioCtx.currentTime + 0.1);
+    gain2.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(audioCtx.currentTime + 0.1);
+    osc2.stop(audioCtx.currentTime + 0.35);
 }
 
 function showToast(message) {
@@ -301,7 +312,7 @@ function handleCheckout() {
 
 // Google Maps Tracking Algorithm
 let map, donorMarker, truckMarker, polyline;
-const donorPos = { lat: 19.2307, lng: 72.8567 }; // Customer Home (Borivali)
+let donorPos = { lat: 19.2307, lng: 72.8567 }; // Default Customer Home (Borivali)
 const startPos = { lat: 19.1136, lng: 72.8697 }; // Store (Andheri)
 
 function initMap() {
@@ -337,6 +348,32 @@ function initMap() {
         strokeWeight: 5,
         path: [startPos, donorPos]
     });
+
+    // Request User Geolocation
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                donorPos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Update map center, marker, and route path
+                map.setCenter(donorPos);
+                donorMarker.setPosition(donorPos);
+                polyline.setPath([startPos, donorPos]);
+                
+                // Adjust bounds to fit both the store and new user location
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(donorPos);
+                bounds.extend(startPos);
+                map.fitBounds(bounds, { padding: 80 });
+            },
+            (error) => {
+                console.log("Geolocation error or denied:", error.message);
+            }
+        );
+    }
 }
 window.initMap = initMap;
 
