@@ -14,6 +14,7 @@
 <body>
     <header class="navbar">
         <div class="logo">
+            <button class="mobile-filter-btn" title="Filters"><i class="fa-solid fa-bars"></i></button>
             <i class="fa-solid fa-bell-concierge"></i> Grand Hotel
         </div>
         <div class="search-bar">
@@ -22,20 +23,24 @@
         </div>
         <div class="nav-actions">
             <div class="track-icon" id="open-tracking-btn" style="display: none;" title="Track Delivery">
-                <i class="fa-solid fa-map-location-dot"></i> Track Order
+                <i class="fa-solid fa-map-location-dot"></i> <span class="icon-text">Track Order</span>
             </div>
             <div class="cart-icon" id="cart-btn">
-                <i class="fa-solid fa-cart-shopping"></i> Cart
+                <i class="fa-solid fa-cart-shopping"></i> <span class="icon-text">Cart</span>
                 <span class="cart-badge" id="cart-badge">0</span>
             </div>
             <div class="profile-pic"></div>
         </div>
     </header>
 
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <main class="dashboard-container">
         <!-- Sidebar Filters -->
         <aside class="sidebar">
-            <h2 class="filter-title">Menu</h2>
+            <div class="sidebar-header">
+                <h2 class="filter-title">Menu</h2>
+                <button class="close-sidebar-btn" id="close-sidebar-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
 
             <div class="filter-section">
                 <h3>Categories <i class="fa-solid fa-chevron-down"></i></h3>

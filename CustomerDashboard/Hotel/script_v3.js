@@ -1,17 +1,13 @@
 const defaultHotelProducts = [
-    { id: 1, name: "Paneer Tikka", price: 350.00, image: "../images/Paneer_Tikka.jpg", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
-    { id: 2, name: "Chicken Biryani", price: 400.00, image: "../images/Chicken Biryani.jpeg", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "../images/Veg Hakka Noodles.jpeg", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
-    { id: 4, name: "Chilli Chicken", price: 380.00, image: "../images/Chlli_Chiken.jpeg", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
-    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "../images/Chicken_Sandwich.jpeg", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
-    { id: 6, name: "Paneer Kabab", price: 280.00, image: "../images/Paneer_Kabab.jpeg", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
+    { id: 1, name: "Paneer Tikka", price: 350.00, image: "images/Paneer_Tikka.jpg", badge: "HOT", category: "Veg", cuisine: "Indian", inStock: true },
+    { id: 2, name: "Chicken Biryani", price: 400.00, image: "images/Chicken Biryani.jpeg", badge: "CHEF'S PICK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 3, name: "Veg Hakka Noodles", price: 250.00, image: "images/Veg Hakka Noodles.jpeg", badge: "NEW", category: "Veg", cuisine: "Chinese", inStock: true },
+    { id: 4, name: "Chilli Chicken", price: 380.00, image: "images/Chlli_Chiken.jpeg", badge: "SPICY", category: "Non-veg", cuisine: "Chinese", inStock: true },
+    { id: 5, name: "Chicken Sandwich", price: 150.00, image: "images/Chicken_Sandwich.jpeg", badge: "SNACK", category: "Non-veg", cuisine: "Indian", inStock: true },
+    { id: 6, name: "Paneer Kabab", price: 280.00, image: "images/Paneer_Kabab.jpeg", badge: "STARTER", category: "Veg", cuisine: "Indian", inStock: true }
 ];
 
-if (!localStorage.getItem('hotelProductsV6')) {
-    localStorage.setItem('hotelProductsV6', JSON.stringify(defaultHotelProducts));
-}
-
-let products = JSON.parse(localStorage.getItem('hotelProductsV6'));
+let products = [];
 
 let cart = [];
 
@@ -28,8 +24,45 @@ const trackingModal = document.getElementById('tracking-modal');
 const closeTrackingBtn = document.getElementById('close-tracking');
 const openTrackingBtn = document.getElementById('open-tracking-btn');
 
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
+async function fetchProductsFromDB() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/get-product`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        let dbProducts = await response.json();
+        
+        let hotelDbProducts = dbProducts.filter(p => p.shop_id === 1);
+        
+        products = defaultHotelProducts.map(def => {
+            const dbProd = hotelDbProducts.find(p => p.name.toLowerCase() === def.name.toLowerCase());
+            if (dbProd) {
+                return {
+                    ...def,
+                    id: dbProd.id,
+                    price: parseFloat(dbProd.price),
+                    inStock: dbProd.is_available && dbProd.stock_quantity > 0,
+                    stock_quantity: dbProd.stock_quantity,
+                    shop_id: dbProd.shop_id
+                };
+            } else {
+                return {
+                    ...def,
+                    stock_quantity: 10,
+                    shop_id: 1,
+                    inStock: true
+                };
+            }
+        });
+    } catch (error) {
+        console.error("Failed to fetch products from DB, falling back to defaults", error);
+        products = JSON.parse(JSON.stringify(defaultHotelProducts));
+    }
+}
+
 // Initialize Dashboard
-function init() {
+async function init() {
+    await fetchProductsFromDB();
     renderProducts();
     setupEventListeners();
 }
@@ -139,21 +172,6 @@ function setupEventListeners() {
         });
     });
 
-    // Listen for changes from Owner Dashboard (another tab)
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hotelProductsV6') {
-            products = JSON.parse(e.newValue);
-            renderProducts();
-            
-            // Remove items that are now out of stock
-            cart = cart.filter(item => {
-                const prod = products.find(p => p.id === item.id);
-                return prod && prod.inStock;
-            });
-            renderCart();
-            updateCartBadge();
-        }
-    });
 }
 
 // Sound and Toast Animation
@@ -209,8 +227,16 @@ function addToCart(productId) {
     const existingItem = cart.find(item => item.id === productId);
 
     if (existingItem) {
+        if (product.stock_quantity !== undefined && existingItem.quantity >= product.stock_quantity) {
+            showToast("Maximum available stock reached!");
+            return;
+        }
         existingItem.quantity += 1;
     } else {
+        if (product.stock_quantity !== undefined && product.stock_quantity <= 0) {
+            showToast("Out of stock!");
+            return;
+        }
         cart.push({ ...product, quantity: 1 });
     }
 
@@ -232,8 +258,14 @@ function removeFromCart(productId) {
 
 function updateQuantity(productId, delta) {
     const item = cart.find(item => item.id === productId);
+    const product = products.find(p => p.id === productId);
     if (item) {
-        item.quantity += delta;
+        const newQty = item.quantity + delta;
+        if (product && product.stock_quantity !== undefined && newQty > product.stock_quantity) {
+            showToast("Maximum available stock reached!");
+            return;
+        }
+        item.quantity = newQty;
         if (item.quantity <= 0) {
             removeFromCart(productId);
         } else {
@@ -285,11 +317,60 @@ function renderCart() {
 }
 
 // Checkout and Tracking
-function handleCheckout() {
+async function handleCheckout() {
     if (cart.length === 0) return;
 
     checkoutBtn.classList.add('processing');
     checkoutBtn.querySelector('.btn-text').textContent = 'Processing...';
+
+    try {
+        for (const item of cart) {
+            const checkRes = await fetch(`${API_BASE_URL}/get-product`);
+            const allDbProducts = await checkRes.json();
+            const dbProduct = allDbProducts.find(p => p.name.toLowerCase() === item.name.toLowerCase() && p.shop_id === (item.shop_id || 1));
+            
+            if (dbProduct) {
+                if (dbProduct.stock_quantity < item.quantity || !dbProduct.is_available) {
+                    showToast(`Sorry, ${item.name} is out of stock!`);
+                    checkoutBtn.classList.remove('processing');
+                    checkoutBtn.querySelector('.btn-text').textContent = 'Pay & Order';
+                    return; // Stop checkout
+                }
+
+                const newStock = dbProduct.stock_quantity - item.quantity;
+                const updatePayload = {
+                    shop_id: dbProduct.shop_id,
+                    name: dbProduct.name,
+                    price: dbProduct.price,
+                    stock_quantity: newStock < 0 ? 0 : newStock,
+                    is_available: newStock > 0
+                };
+                
+                await fetch(`${API_BASE_URL}/update-product/${dbProduct.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatePayload)
+                });
+            } else {
+                // If it doesn't exist, use POST request to create it so it shows up in the DB
+                const createPayload = {
+                    shop_id: item.shop_id || 1,
+                    name: item.name,
+                    price: item.price,
+                    stock_quantity: 10 - item.quantity,
+                    is_available: true
+                };
+                
+                await fetch(`${API_BASE_URL}/create-product`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(createPayload)
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Failed to sync with database during checkout", e);
+    }
 
     setTimeout(() => {
         checkoutBtn.classList.remove('processing');
@@ -298,6 +379,9 @@ function handleCheckout() {
         cartOverlay.classList.remove('active');
         cart = [];
         updateCartBadge();
+        
+        // Refresh products from DB so UI shows updated stock
+        fetchProductsFromDB().then(() => renderProducts());
         
         trackingModal.classList.add('active');
         if (openTrackingBtn) openTrackingBtn.style.display = 'block';
@@ -346,6 +430,11 @@ function initMap() {
 
     // Request User Geolocation
     if (navigator.geolocation) {
+        if (window.location.protocol === 'file:') {
+            setTimeout(() => {
+                showToast("Note: Browser blocks location on file:///. Use Live Server.");
+            }, 3000);
+        }
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 donorPos = {
@@ -363,11 +452,16 @@ function initMap() {
                 bounds.extend(donorPos);
                 bounds.extend(startPos);
                 map.fitBounds(bounds, { padding: 80 });
+                showToast("Location updated successfully!");
             },
             (error) => {
                 console.log("Geolocation error or denied:", error.message);
-            }
+                showToast("Could not get your location: " + error.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
+    } else {
+        showToast("Geolocation is not supported by this browser.");
     }
 }
 window.initMap = initMap;
@@ -445,3 +539,24 @@ function startTrackingAnimation() {
 
 // Run init
 init();
+
+// Mobile Sidebar Toggle
+const mobileBtn = document.querySelector('.mobile-filter-btn');
+const sidebar = document.querySelector('.sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+
+if (mobileBtn && sidebar && overlay) {
+    mobileBtn.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+    });
+    
+    const closeSidebar = () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    };
+
+    overlay.addEventListener('click', closeSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+}

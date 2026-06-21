@@ -1,17 +1,13 @@
 const defaultGroceryProducts = [
-    { id: 1, name: "Britania Biscuit", price: 20.00, image: "../images/Britannia Biscuit.jpeg", badge: "FRESH", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
-    { id: 2, name: "Everest Chat masala", price: 60.00, image: "../images/Everest Chat Masala.jpeg", badge: "SPICE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
-    { id: 3, name: "Amul Milk", price: 40.00, image: "../images/Amul Milk.jpeg", badge: "DAIRY", category: "Dairy & Eggs", dietary: ["Vegetarian"], inStock: true },
-    { id: 4, name: "Wibs Brown Bread", price: 35.00, image: "../images/One for all.jpeg", badge: "HEALTHY", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
-    { id: 5, name: "Cooking Oil", price: 220.00, image: "../images/Cooking Oil.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
-    { id: 6, name: "Wheat Flour", price: 50.00, image: "../images/Wheat Flour.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true }
+    { id: 1, name: "Britania Biscuit", price: 20.00, image: "images/Britannia Biscuit.jpeg", badge: "FRESH", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
+    { id: 2, name: "Everest Chat masala", price: 60.00, image: "images/Everest Chat Masala.jpeg", badge: "SPICE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
+    { id: 3, name: "Amul Milk", price: 40.00, image: "images/Amul Milk.jpeg", badge: "DAIRY", category: "Dairy & Eggs", dietary: ["Vegetarian"], inStock: true },
+    { id: 4, name: "Wibs Brown Bread", price: 35.00, image: "images/One for all.jpeg", badge: "HEALTHY", category: "Bakery", dietary: ["Vegetarian"], inStock: true },
+    { id: 5, name: "Cooking Oil", price: 220.00, image: "images/Cooking Oil.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true },
+    { id: 6, name: "Wheat Flour", price: 50.00, image: "images/Wheat Flour.jpeg", badge: "STAPLE", category: "Pantry", dietary: ["Vegetarian", "Vegan"], inStock: true }
 ];
 
-if (!localStorage.getItem('groceryProductsV6')) {
-    localStorage.setItem('groceryProductsV6', JSON.stringify(defaultGroceryProducts));
-}
-
-let products = JSON.parse(localStorage.getItem('groceryProductsV6'));
+let products = [];
 
 let cart = [];
 
@@ -28,8 +24,45 @@ const trackingModal = document.getElementById('tracking-modal');
 const closeTrackingBtn = document.getElementById('close-tracking');
 const openTrackingBtn = document.getElementById('open-tracking-btn');
 
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
+async function fetchProductsFromDB() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/get-product`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        let dbProducts = await response.json();
+        
+        let groceryDbProducts = dbProducts.filter(p => p.shop_id === 2);
+        
+        products = defaultGroceryProducts.map(def => {
+            const dbProd = groceryDbProducts.find(p => p.name.toLowerCase() === def.name.toLowerCase());
+            if (dbProd) {
+                return {
+                    ...def,
+                    id: dbProd.id,
+                    price: parseFloat(dbProd.price),
+                    inStock: dbProd.is_available && dbProd.stock_quantity > 0,
+                    stock_quantity: dbProd.stock_quantity,
+                    shop_id: dbProd.shop_id
+                };
+            } else {
+                return {
+                    ...def,
+                    stock_quantity: 10,
+                    shop_id: 2,
+                    inStock: true
+                };
+            }
+        });
+    } catch (error) {
+        console.error("Failed to fetch products from DB, falling back to defaults", error);
+        products = JSON.parse(JSON.stringify(defaultGroceryProducts));
+    }
+}
+
 // Initialize Dashboard
-function init() {
+async function init() {
+    await fetchProductsFromDB();
     renderProducts();
     setupEventListeners();
 }
@@ -41,19 +74,19 @@ function renderProducts() {
     const categoryFilters = Array.from(document.querySelectorAll('#category-filters .filter-cb:checked')).map(cb => cb.value);
     const dietaryFilters = Array.from(document.querySelectorAll('#dietary-filters .filter-cb:checked')).map(cb => cb.value);
     const priceFilters = Array.from(document.querySelectorAll('#price-filters .filter-cb:checked')).map(cb => cb.value);
-    
+
     const searchInput = document.querySelector('.search-bar input');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
     let filtered = products.filter(product => {
         let nameMatch = searchTerm === '' || product.name.toLowerCase().includes(searchTerm);
-        
+
         // Category Match
         let categoryMatch = categoryFilters.length === 0 || categoryFilters.includes(product.category);
-        
+
         // Dietary Match (must have all selected)
         let dietaryMatch = dietaryFilters.length === 0 || dietaryFilters.every(d => product.dietary.includes(d));
-        
+
         // Price Match
         let priceMatch = priceFilters.length === 0 || priceFilters.includes('all');
         if (!priceMatch) {
@@ -76,11 +109,11 @@ function renderProducts() {
     filtered.forEach(product => {
         const isOutOfStock = !product.inStock;
         const cardClass = isOutOfStock ? 'product-card out-of-stock' : 'product-card';
-        
-        const badgeHtml = isOutOfStock 
-            ? `<div class="badge out-stock">OUT OF STOCK</div>` 
+
+        const badgeHtml = isOutOfStock
+            ? `<div class="badge out-stock">OUT OF STOCK</div>`
             : `<div class="badge ${product.badge === 'FRESH' ? 'fresh' : ''}">${product.badge}</div>`;
-            
+
         const buttonHtml = isOutOfStock
             ? `<button class="add-to-cart" disabled><i class="fa-solid fa-ban"></i> Unavailable</button>`
             : `<button class="add-to-cart" onclick="addToCart(${product.id})"><i class="fa-solid fa-plus"></i> Add to Cart</button>`;
@@ -128,13 +161,13 @@ function setupEventListeners() {
     document.querySelectorAll('.filter-cb').forEach(cb => {
         cb.addEventListener('change', renderProducts);
     });
-    
+
     // Listen for search input changes
     const searchInput = document.querySelector('.search-bar input');
     if (searchInput) {
         searchInput.addEventListener('input', renderProducts);
     }
-    
+
     // Dropdown animation for filters
     document.querySelectorAll('.filter-section h3').forEach(header => {
         header.addEventListener('click', () => {
@@ -144,27 +177,12 @@ function setupEventListeners() {
         });
     });
 
-    // Listen for changes from Owner Dashboard (another tab)
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'groceryProductsV6') {
-            products = JSON.parse(e.newValue);
-            renderProducts();
-            
-            // Remove items that are now out of stock
-            cart = cart.filter(item => {
-                const prod = products.find(p => p.id === item.id);
-                return prod && prod.inStock;
-            });
-            renderCart();
-            updateCartBadge();
-        }
-    });
 }
 
 // Sound and Toast Animation
 function playPopSound() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+
     // First tone (A5)
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
@@ -197,11 +215,11 @@ function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${message}</span>`;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => toast.classList.add('show'), 10);
-    
+
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
@@ -214,16 +232,24 @@ function addToCart(productId) {
     const existingItem = cart.find(item => item.id === productId);
 
     if (existingItem) {
+        if (product.stock_quantity !== undefined && existingItem.quantity >= product.stock_quantity) {
+            showToast("Maximum available stock reached!");
+            return;
+        }
         existingItem.quantity += 1;
     } else {
+        if (product.stock_quantity !== undefined && product.stock_quantity <= 0) {
+            showToast("Out of stock!");
+            return;
+        }
         cart.push({ ...product, quantity: 1 });
     }
 
     updateCartBadge();
-    
+
     playPopSound();
     showToast(product.name + " added to cart!");
-    
+
     // Bounce effect on cart icon
     cartBtn.style.transform = 'scale(1.2)';
     setTimeout(() => cartBtn.style.transform = 'scale(1)', 200);
@@ -237,8 +263,14 @@ function removeFromCart(productId) {
 
 function updateQuantity(productId, delta) {
     const item = cart.find(item => item.id === productId);
+    const product = products.find(p => p.id === productId);
     if (item) {
-        item.quantity += delta;
+        const newQty = item.quantity + delta;
+        if (product && product.stock_quantity !== undefined && newQty > product.stock_quantity) {
+            showToast("Maximum available stock reached!");
+            return;
+        }
+        item.quantity = newQty;
         if (item.quantity <= 0) {
             removeFromCart(productId);
         } else {
@@ -290,24 +322,76 @@ function renderCart() {
 }
 
 // Checkout and Tracking
-function handleCheckout() {
+async function handleCheckout() {
     if (cart.length === 0) return;
 
     checkoutBtn.classList.add('processing');
     checkoutBtn.querySelector('.btn-text').textContent = 'Processing...';
 
+    try {
+        for (const item of cart) {
+            const checkRes = await fetch(`${API_BASE_URL}/get-product`);
+            const allDbProducts = await checkRes.json();
+            const dbProduct = allDbProducts.find(p => p.name.toLowerCase() === item.name.toLowerCase() && p.shop_id === (item.shop_id || 2));
+            
+            if (dbProduct) {
+                if (dbProduct.stock_quantity < item.quantity || !dbProduct.is_available) {
+                    showToast(`Sorry, ${item.name} is out of stock!`);
+                    checkoutBtn.classList.remove('processing');
+                    checkoutBtn.querySelector('.btn-text').textContent = 'Pay Now';
+                    return; // Stop checkout
+                }
+
+                const newStock = dbProduct.stock_quantity - item.quantity;
+                const updatePayload = {
+                    shop_id: dbProduct.shop_id,
+                    name: dbProduct.name,
+                    price: dbProduct.price,
+                    stock_quantity: newStock < 0 ? 0 : newStock,
+                    is_available: newStock > 0
+                };
+                
+                await fetch(`${API_BASE_URL}/update-product/${dbProduct.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatePayload)
+                });
+            } else {
+                // If it doesn't exist, use POST request to create it so it shows up in the DB
+                const createPayload = {
+                    shop_id: item.shop_id || 2,
+                    name: item.name,
+                    price: item.price,
+                    stock_quantity: 10 - item.quantity,
+                    is_available: true
+                };
+                
+                await fetch(`${API_BASE_URL}/create-product`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(createPayload)
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Failed to sync with database during checkout", e);
+    }
+
     setTimeout(() => {
         checkoutBtn.classList.remove('processing');
         checkoutBtn.querySelector('.btn-text').textContent = 'Pay Now';
-        
+
         cartOverlay.classList.remove('active');
         cart = [];
         updateCartBadge();
-        
+
+        // Refresh products from DB so UI shows updated stock
+        fetchProductsFromDB().then(() => renderProducts());
+
         trackingModal.classList.add('active');
         if (openTrackingBtn) openTrackingBtn.style.display = 'block';
         startTrackingAnimation();
-    }, 2000); 
+    }, 2000);
 }
 
 // Google Maps Tracking Algorithm
@@ -351,34 +435,44 @@ function initMap() {
 
     // Request User Geolocation
     if (navigator.geolocation) {
+        if (window.location.protocol === 'file:') {
+            setTimeout(() => {
+                showToast("Note: Browser blocks location on file:///. Use Live Server.");
+            }, 3000);
+        }
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 donorPos = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
-                
+
                 // Update map center, marker, and route path
                 map.setCenter(donorPos);
                 donorMarker.setPosition(donorPos);
                 polyline.setPath([startPos, donorPos]);
-                
+
                 // Adjust bounds to fit both the store and new user location
                 const bounds = new google.maps.LatLngBounds();
                 bounds.extend(donorPos);
                 bounds.extend(startPos);
                 map.fitBounds(bounds, { padding: 80 });
+                showToast("Location updated successfully!");
             },
             (error) => {
                 console.log("Geolocation error or denied:", error.message);
-            }
+                showToast("Could not get your location: " + error.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
+    } else {
+        showToast("Geolocation is not supported by this browser.");
     }
 }
 window.initMap = initMap;
 
 function updateTruckLocation(driverPos) {
-    if(!truckMarker) return;
+    if (!truckMarker) return;
     truckMarker.setPosition(driverPos);
     polyline.setPath([driverPos, donorPos]);
 
@@ -414,9 +508,9 @@ function startTrackingAnimation() {
         simIndex = 0;
         document.getElementById("status-text").innerText = "Out for Delivery!";
         updateTruckLocation(startPos);
-        
+
         const steps = document.querySelectorAll('#tracking-modal .status-step');
-        if(steps.length >= 4) {
+        if (steps.length >= 4) {
             steps[2].classList.add('pulse');
             steps[3].classList.remove('active');
         }
@@ -426,15 +520,15 @@ function startTrackingAnimation() {
                 clearInterval(simInterval);
                 document.getElementById("status-text").innerText = "Arrived at your Doorstep!";
                 document.getElementById("dist-text").innerText = "0.0 km left";
-                
-                if(steps.length >= 4) {
+
+                if (steps.length >= 4) {
                     steps[2].classList.remove('pulse');
                     steps[3].classList.add('active');
                 }
-                
+
                 // Hide tracking button when delivery is complete
                 if (openTrackingBtn) openTrackingBtn.style.display = 'none';
-                
+
                 return;
             }
             const pos = simSteps[simIndex];
@@ -445,8 +539,29 @@ function startTrackingAnimation() {
 
             simIndex++;
         }, 800);
-    }, 400); 
+    }, 400);
 }
 
 // Run init
 init();
+
+// Mobile Sidebar Toggle
+const mobileBtn = document.querySelector('.mobile-filter-btn');
+const sidebar = document.querySelector('.sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+
+if (mobileBtn && sidebar && overlay) {
+    mobileBtn.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+    });
+    
+    const closeSidebar = () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    };
+
+    overlay.addEventListener('click', closeSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+}
