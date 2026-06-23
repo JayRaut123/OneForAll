@@ -926,5 +926,5 @@ async function init() {
     setInterval(generateRandomOrder, 15000);
 }
 
-// Start Dashboard
-init();
+// Start Dashboard — called by login controller after authentication
+// init();
