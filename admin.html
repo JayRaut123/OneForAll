@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Tower</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <nav class="sidebar">
+            <h2>OneForAll Admin</h2>
+            <ul>
+                <li><a href="#metrics" class="nav-btn active">Overview</a></li>
+                <li><a href="#users-section" class="nav-btn">Manage Users</a></li>
+                <li><a href="#products-section" class="nav-btn">Manage Products</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <section id="metrics" class="dashboard-section">
+                <h1>Platform Pulse</h1>
+                <div class="metrics-grid">
+                    <div class="card"><h3>Total Customers</h3><p id="count-customers">Loading...</p></div>
+                    <div class="card"><h3>Total Shops</h3><p id="count-shops">Loading...</p></div>
+                    <div class="card"><h3>Total Products</h3><p id="count-products">Loading...</p></div>
+                </div>
+            </section>
+
+            <section id="users-section" class="dashboard-section hidden">
+                <h2>Accounts Directory</h2>
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </section>
+
+            <section id="products-section" class="dashboard-section hidden">
+                <h2>Global Product Inventory</h2>
+                <table id="products-table">
+                    <thead>
+                        <tr>
+                            <th>Product ID</th><th>Shop ID</th><th>Product Name</th><th>Price</th><th>Stock</th><th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script src="admin.js"></script>
+</body>
+</html>
